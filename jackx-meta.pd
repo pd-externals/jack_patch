@@ -3,4 +3,5 @@
 #X text 13 41 NAME jackx;
 #X text 10 25 AUTHOR Gerard van Dongen;
 #X text 10 10 VERSION 0.0;
+#X text 10 60 LICENSE GPL;
 #X restore 10 10 pd META;
