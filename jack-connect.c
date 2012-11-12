@@ -17,7 +17,7 @@
  * this can query and set the port connections on the jack system
  */
 
-#include "libjackx.h"
+#include "jackx.h"
 #include "m_pd.h"
 
 #include <unistd.h>

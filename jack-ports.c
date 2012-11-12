@@ -18,7 +18,7 @@
  */
 
 
-#include "libjackx.h"
+#include "jackx.h"
 #include "m_pd.h"
 
 #include <unistd.h>
