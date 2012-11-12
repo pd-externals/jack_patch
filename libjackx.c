@@ -18,6 +18,7 @@
 
  */
 
+#include "m_pd.h"
 #include <jack/jack.h>
 
 static jack_client_t *jc;
@@ -25,6 +26,20 @@ static jack_client_t *jc;
 jack_client_t * jackx_get_jack_client()
 {
     if (!jc)
-        jc = jack_client_new("jacky-x");
+    {
+        jack_status_t status;
+        jc = jack_client_open ("jackx-pd", JackNullOption, &status, NULL);
+        if (status & JackServerFailed) {
+            error("jackx: unable to connect to JACK server");
+            jc = NULL;
+        }
+        if (status) {
+            if (status & JackServerStarted) {
+                logpost(NULL, 4, "jackx: started server");
+            } else {
+                error("jackx: server returned status %d", status);
+            }
+        }
+    }
     return jc;
 }
