@@ -6,14 +6,14 @@ LIBRARY_NAME = jackx
 # add your .c source files, one object per file, to the SOURCES
 # variable, help files will be included automatically, and for GUI
 # objects, the matching .tcl file too
-SOURCES = jackx.c
+SOURCES = jack-connect.c jack-ports.c
 
 # list all pd objects (i.e. myobject.pd) files here, and their helpfiles will
 # be included automatically
 PDOBJECTS =
 
 # example patches and related files, in the 'examples' subfolder
-EXAMPLES =
+EXAMPLES = jack.pd
 
 # manuals and related files, in the 'manual' subfolder
 MANUAL =
