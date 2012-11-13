@@ -68,7 +68,7 @@ static void jackconnect_connect(t_jackconnect *x)
 #else
         logpost(x, 3,
 #endif
-                "connecting   %s with %s", x->source, x->destination);
+                "[jack-connect] connecting '%s' --> '%s'", x->source, x->destination);
         if (!jack_connect(jc, x->source, x->destination))
         {
             x->connected = 1;
@@ -93,7 +93,7 @@ static void jackconnect_disconnect(t_jackconnect *x)
 #else
         logpost(x, 3,
 #endif
-                "disconnecting   %s with %s", x->source, x->destination);
+                "[jack-connect] disconnecting '%s' --> '%s'", x->source, x->destination);
     }
 }
 
@@ -108,7 +108,7 @@ static void jackconnect_toggle(t_jackconnect *x)
 #else
         logpost(x, 3,
 #endif
-                "toggling connection   %s with %s", x->source, x->destination);
+                "[jack-connect] toggling connection '%s' --> '%s'", x->source, x->destination);
         if (jack_disconnect(jc, x->source, x->destination))
         {
             jack_connect(jc, x->source, x->destination);
@@ -135,7 +135,7 @@ static void jackconnect_query(t_jackconnect *x)
 #else
         logpost(x, 3,
 #endif
-                "querying connection   %s with %s", x->source, x->destination);
+                "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
 
         ports = jack_port_get_all_connections(jc,(jack_port_t *)jack_port_by_name(jc, x->source));
         x->connected = 0;
@@ -165,7 +165,8 @@ static void jackconnect_query(t_jackconnect *x)
     }
 }
 
-static void *jackconnect_new(void)
+static void *jackconnect_new(t_symbol *output_client, t_symbol *output_port,
+                             t_symbol *input_client, t_symbol *input_port)
 {
     t_jackconnect * x = (t_jackconnect *)pd_new(jackconnect_class);
 
@@ -176,10 +177,10 @@ static void *jackconnect_new(void)
     symbolinlet_new(&x->x_obj, &x->input_port);
 
     /* to prevent segfaults put default names in the client/port variables */
-    x->input_client = gensym("none");
-    x->input_port = gensym("none");
-    x->output_client =  gensym("none");
-    x->output_port =  gensym("none");
+    x->input_client = input_client;
+    x->input_port = input_port;
+    x->output_client = output_client;
+    x->output_port = output_port;
     x->connected = 0;
     jackconnect_getnames(x);
 
@@ -195,6 +196,7 @@ static void setup(void)
                                   0,
                                   sizeof(t_jackconnect),
                                   CLASS_DEFAULT,
+                                  A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL,
                                   0);
 
     class_addmethod(jackconnect_class, (t_method)jackconnect_connect, gensym("connect"),0);
