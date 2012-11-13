@@ -35,7 +35,7 @@ jack_client_t * jackx_get_jack_client()
         }
         if (status) {
             if (status & JackServerStarted) {
-                logpost(NULL, 4, "jackx: started server");
+                verbose(1, "jackx: started server");
             } else {
                 error("jackx: server returned status %d", status);
             }

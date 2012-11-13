@@ -62,7 +62,13 @@ static void jackconnect_connect(t_jackconnect *x)
     if (jc)
     {
         jackconnect_getnames(x);
-        logpost(x, 3, "connecting   %s with %s", x->source, x->destination);
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
+        // Pd < 0.43 doesn't have logpost()
+        post(
+#else
+        logpost(x, 3,
+#endif
+                "connecting   %s with %s", x->source, x->destination);
         if (!jack_connect(jc, x->source, x->destination))
         {
             x->connected = 1;
@@ -81,7 +87,13 @@ static void jackconnect_disconnect(t_jackconnect *x)
             x->connected = 0;
             outlet_float(x->x_obj.ob_outlet, x->connected);
         }
-        logpost(x, 3, "disconnecting   %s with %s", x->source, x->destination);
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
+        // Pd < 0.43 doesn't have logpost()
+        post(
+#else
+        logpost(x, 3,
+#endif
+                "disconnecting   %s with %s", x->source, x->destination);
     }
 }
 
@@ -90,7 +102,13 @@ static void jackconnect_toggle(t_jackconnect *x)
     if (jc)
     {
         jackconnect_getnames(x);
-        logpost(x, 3, "toggling connection   %s with %s", x->source, x->destination);
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
+        // Pd < 0.43 doesn't have logpost()
+        post(
+#else
+        logpost(x, 3,
+#endif
+                "toggling connection   %s with %s", x->source, x->destination);
         if (jack_disconnect(jc, x->source, x->destination))
         {
             jack_connect(jc, x->source, x->destination);
@@ -111,7 +129,13 @@ static void jackconnect_query(t_jackconnect *x)
         const char **ports;
         int n=0;
         jackconnect_getnames(x);
-        logpost(x, 3, "querying connection   %s with %s", x->source, x->destination);
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
+        // Pd < 0.43 doesn't have logpost()
+        post(
+#else
+        logpost(x, 3,
+#endif
+                "querying connection   %s with %s", x->source, x->destination);
 
         ports = jack_port_get_all_connections(jc,(jack_port_t *)jack_port_by_name(jc, x->source));
         x->connected = 0;
@@ -120,7 +144,13 @@ static void jackconnect_query(t_jackconnect *x)
         {
             while (ports[n])
             {
-                logpost(x, 4, "n = %i", n);
+#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
+                // Pd < 0.43 doesn't have logpost()
+                post(
+#else 
+                logpost(x, 4,
+#endif
+                        "n = %i", n);
                 if (!strcmp(ports[n], x->destination))
                 {
                     x->connected = 1;
