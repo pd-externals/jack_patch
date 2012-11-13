@@ -150,10 +150,11 @@ static void jackports_input(t_jackports *x, t_symbol *s,int argc, t_atom *argv)
 
                 if (t)
                 {
-                    s_port=gensym(strchr(ports[n],':')+1);
+                    s_port = gensym(strchr(ports[n], ':') + 1);
 
-
-                    snprintf(x->buffer,l-strlen(s_port->s_name),ports[n]);
+                    int clientlen = l - strlen(s_port->s_name) - 1;
+                    strncpy(x->buffer, ports[n], clientlen);
+                    x->buffer[clientlen] = '\0';
                     s_client = gensym(x->buffer);
 
                     SETSYMBOL(x->a_outlist,s_client);
@@ -179,10 +180,11 @@ static void jackports_input(t_jackports *x, t_symbol *s,int argc, t_atom *argv)
 
                 if (t)
                 {
-                    s_port=gensym(strchr(ports[n],':')+1);
+                    s_port = gensym(strchr(ports[n], ':') + 1);
 
-
-                    snprintf(x->buffer,l-strlen(s_port->s_name),ports[n]);
+                    int clientlen = l - strlen(s_port->s_name) - 1;
+                    strncpy(x->buffer, ports[n], clientlen);
+                    x->buffer[clientlen] = '\0';
                     s_client = gensym(x->buffer);
 
                     SETSYMBOL(x->a_outlist,s_client);
