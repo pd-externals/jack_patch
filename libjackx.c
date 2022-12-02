@@ -30,14 +30,14 @@ jack_client_t * jackx_get_jack_client()
         jack_status_t status;
         jc = jack_client_open ("jackx-pd", JackNullOption, &status, NULL);
         if (status & JackServerFailed) {
-            error("jackx: unable to connect to JACK server");
+            pd_error(NULL, "jackx: unable to connect to JACK server");
             jc = NULL;
         }
         if (status) {
             if (status & JackServerStarted) {
                 verbose(1, "jackx: started server");
             } else {
-                error("jackx: server returned status %d", status);
+                pd_error(NULL, "jackx: server returned status %d", status);
             }
         }
     }
