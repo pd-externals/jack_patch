@@ -62,12 +62,7 @@ static void jackconnect_connect(t_jackconnect *x)
     if (jc)
     {
         jackconnect_getnames(x);
-#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
-        // Pd < 0.43 doesn't have logpost()
-        post(
-#else
         logpost(x, 3,
-#endif
                 "[jack-connect] connecting '%s' --> '%s'", x->source, x->destination);
         if (!jack_connect(jc, x->source, x->destination))
         {
@@ -87,12 +82,7 @@ static void jackconnect_disconnect(t_jackconnect *x)
             x->connected = 0;
             outlet_float(x->x_obj.ob_outlet, x->connected);
         }
-#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
-        // Pd < 0.43 doesn't have logpost()
-        post(
-#else
         logpost(x, 3,
-#endif
                 "[jack-connect] disconnecting '%s' --> '%s'", x->source, x->destination);
     }
 }
@@ -102,12 +92,7 @@ static void jackconnect_toggle(t_jackconnect *x)
     if (jc)
     {
         jackconnect_getnames(x);
-#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
-        // Pd < 0.43 doesn't have logpost()
-        post(
-#else
         logpost(x, 3,
-#endif
                 "[jack-connect] toggling connection '%s' --> '%s'", x->source, x->destination);
         if (jack_disconnect(jc, x->source, x->destination))
         {
@@ -129,12 +114,7 @@ static void jackconnect_query(t_jackconnect *x)
         const char **ports;
         int n=0;
         jackconnect_getnames(x);
-#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
-        // Pd < 0.43 doesn't have logpost()
-        post(
-#else
         logpost(x, 3,
-#endif
                 "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
 
         ports = jack_port_get_all_connections(jc,(jack_port_t *)jack_port_by_name(jc, x->source));
@@ -144,12 +124,7 @@ static void jackconnect_query(t_jackconnect *x)
         {
             while (ports[n])
             {
-#if PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 43
-                // Pd < 0.43 doesn't have logpost()
-                post(
-#else 
                 logpost(x, 4,
-#endif
                         "n = %i", n);
                 if (!strcmp(ports[n], x->destination))
                 {
