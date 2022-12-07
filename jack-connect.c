@@ -162,7 +162,7 @@ static void *jackconnect_new(t_symbol *output_client, t_symbol *output_port,
     return (void*)x;
 }
 
-void jack0x2dconnect_setup(void)
+static void setup(void)
 {
     jc = jackx_get_jack_client();
 
@@ -181,3 +181,7 @@ void jack0x2dconnect_setup(void)
     class_addbang(jackconnect_class, (t_method)jackconnect_toggle);
 }
 
+void setup_jack0x2dconnect(void)
+{
+    setup();
+}
