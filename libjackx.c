@@ -28,7 +28,8 @@ jack_client_t * jackx_get_jack_client()
     if (!jc)
     {
         jack_status_t status;
-        jc = jack_client_open ("jackx-pd", JackNullOption, &status, NULL);
+        jack_options_t options = JackNoStartServer;
+        jc = jack_client_open ("jackx-pd", options, &status, NULL);
         if (status & JackServerFailed) {
             pd_error(NULL, "jackx: unable to connect to JACK server");
             jc = NULL;
