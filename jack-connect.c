@@ -20,14 +20,8 @@
 #include "jackx.h"
 #include "m_pd.h"
 
-#include <unistd.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
 #include <jack/jack.h>
 
 
@@ -141,12 +135,8 @@ static void jackconnect_query(t_jackconnect *x,
 static void *jackconnect_new(void)
 {
     t_jackconnect * x = (t_jackconnect *)pd_new(jackconnect_class);
-
     outlet_new(&x->x_obj, &s_float);
-
     x->connected = 0;
-    //jackconnect_getnames(x);
-
     return (void*)x;
 }
 
