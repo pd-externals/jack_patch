@@ -31,8 +31,8 @@ static t_class *jackconnect_class;
 typedef struct _jackconnect
 {
     t_object x_obj;
-    char source[128];
-    char destination[128];
+    char source[321];
+    char destination[321];
 } t_jackconnect;
 
 static jack_client_t *jc;
