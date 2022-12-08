@@ -20,6 +20,7 @@
 #include "jackx.h"
 #include "m_pd.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <jack/jack.h>
@@ -30,8 +31,8 @@ static t_class *jackconnect_class;
 typedef struct _jackconnect
 {
     t_object x_obj;
-    char source[128],destination[128]; //ought to be enough for most names
-    int connected;
+    char source[128];
+    char destination[128];
 } t_jackconnect;
 
 static jack_client_t *jc;
@@ -58,14 +59,14 @@ static void jackconnect_connect(t_jackconnect *x,
 {
     if (jc)
     {
+        int status;
+        int connected = 0;
         jackconnect_getnames(x, output_client, output_port, input_client, input_port);
         logpost(x, 3,
                 "[jack-connect] connecting '%s' --> '%s'", x->source, x->destination);
-        if (!jack_connect(jc, x->source, x->destination))
-        {
-            x->connected = 1;
-            outlet_float(x->x_obj.ob_outlet, x->connected);
-        }
+        status = jack_connect(jc, x->source, x->destination);
+        if ((!status) || status == EEXIST) connected = 1;
+        outlet_float(x->x_obj.ob_outlet, connected);
     }
 }
 
@@ -76,11 +77,8 @@ static void jackconnect_disconnect(t_jackconnect *x,
     if (jc)
     {
         jackconnect_getnames(x, output_client, output_port, input_client, input_port);
-        if (!jack_disconnect(jc, x->source, x->destination))
-        {
-            x->connected = 0;
-            outlet_float(x->x_obj.ob_outlet, x->connected);
-        }
+        jack_disconnect(jc, x->source, x->destination);
+        outlet_float(x->x_obj.ob_outlet, 0);
         logpost(x, 3,
                 "[jack-connect] disconnecting '%s' --> '%s'", x->source, x->destination);
     }
@@ -99,7 +97,7 @@ static void jackconnect_query(t_jackconnect *x,
                 "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
 
         ports = jack_port_get_all_connections(jc,(jack_port_t *)jack_port_by_name(jc, x->source));
-        x->connected = 0;
+        int connected = 0;
 
         if(ports)
         {
@@ -109,7 +107,7 @@ static void jackconnect_query(t_jackconnect *x,
                         "n = %i", n);
                 if (!strcmp(ports[n], x->destination))
                 {
-                    x->connected = 1;
+                    connected = 1;
                     break;
                 }
                 n++;
@@ -117,7 +115,7 @@ static void jackconnect_query(t_jackconnect *x,
             }
             free(ports);
         }
-        outlet_float(x->x_obj.ob_outlet, x->connected);
+        outlet_float(x->x_obj.ob_outlet, connected);
     }
 }
 
@@ -125,7 +123,6 @@ static void *jackconnect_new(void)
 {
     t_jackconnect * x = (t_jackconnect *)pd_new(jackconnect_class);
     outlet_new(&x->x_obj, &s_float);
-    x->connected = 0;
     return (void*)x;
 }
 
