@@ -113,7 +113,7 @@ static void jackconnect_query(t_jackconnect *x,
                 n++;
 
             }
-            free(ports);
+            jack_free(ports);
         }
         outlet_float(x->x_obj.ob_outlet, connected);
     }
@@ -130,12 +130,8 @@ static void setup(void)
 {
     jc = jackx_get_jack_client();
 
-    jackconnect_class = class_new(gensym("jack-connect"),
-                                  (t_newmethod)jackconnect_new,
-                                  0,
-                                  sizeof(t_jackconnect),
-                                  CLASS_DEFAULT,
-                                  0);
+    jackconnect_class = class_new(gensym("jack-connect"), (t_newmethod)jackconnect_new,
+                                  0, sizeof(t_jackconnect), CLASS_DEFAULT, 0);
 
     class_addmethod(jackconnect_class, (t_method)jackconnect_connect, gensym("connect"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
