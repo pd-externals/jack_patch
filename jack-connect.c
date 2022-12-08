@@ -63,10 +63,10 @@ static void jackconnect_connect(t_jackconnect *x,
 {
     if (jc)
     {
-        x->output_client = output_client->s_name;
-        x->output_port = output_port->s_name;
-        x->input_client = input_client->s_name;
-        x->input_port = input_port->s_name;
+        x->output_client = output_client;
+        x->output_port = output_port;
+        x->input_client = input_client;
+        x->input_port = input_port;
         jackconnect_getnames(x);
         logpost(x, 3,
                 "[jack-connect] connecting '%s' --> '%s'", x->source, x->destination);
@@ -84,10 +84,10 @@ static void jackconnect_disconnect(t_jackconnect *x,
 {
     if (jc)
     {
-        x->output_client = output_client->s_name;
-        x->output_port = output_port->s_name;
-        x->input_client = input_client->s_name;
-        x->input_port = input_port->s_name;
+        x->output_client = output_client;
+        x->output_port = output_port;
+        x->input_client = input_client;
+        x->input_port = input_port;
         jackconnect_getnames(x);
         if (!jack_disconnect(jc, x->source, x->destination))
         {
@@ -105,10 +105,10 @@ static void jackconnect_query(t_jackconnect *x,
 {
     if (jc)
     {
-        x->output_client = output_client->s_name;
-        x->output_port = output_port->s_name;
-        x->input_client = input_client->s_name;
-        x->input_port = input_port->s_name;
+        x->output_client = output_client;
+        x->output_port = output_port;
+        x->input_client = input_client;
+        x->input_port = input_port;
         const char **ports;
         int n=0;
         jackconnect_getnames(x);
@@ -144,13 +144,8 @@ static void *jackconnect_new(void)
 
     outlet_new(&x->x_obj, &s_float);
 
-    /* to prevent segfaults put default names in the client/port variables */
-    x->input_client = input_client;
-    x->input_port = input_port;
-    x->output_client = output_client;
-    x->output_port = output_port;
     x->connected = 0;
-    jackconnect_getnames(x);
+    //jackconnect_getnames(x);
 
     return (void*)x;
 }
