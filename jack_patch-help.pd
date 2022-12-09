@@ -27,13 +27,15 @@
 #X msg 142 210 disconnect;
 #X obj 17 257 s \$0.to-jack_patch;
 #X obj 80 322 r \$0.to-jack_patch;
-#X obj 373 259 s \$0.to-jack_patch;
-#X msg 354 107 bang;
-#X msg 407 108 virtual input .*;
-#X msg 423 136 physical input .*;
-#X msg 426 164 virtual output .*;
-#X msg 435 195 physical output .*;
+#X obj 348 274 s \$0.to-jack_patch;
+#X msg 328 12 bang;
+#X msg 381 13 virtual input .*;
+#X msg 397 41 physical input .*;
+#X msg 400 69 virtual output .*;
+#X msg 409 100 physical output .*;
 #X obj 137 419 print jp_inputs;
+#X msg 372 204 get_connections mpv out_1;
+#X msg 378 238 get_connections system playback_1;
 #X connect 0 0 2 0;
 #X connect 0 1 3 0;
 #X connect 0 2 21 0;
@@ -52,3 +54,5 @@
 #X connect 18 0 15 0;
 #X connect 19 0 15 0;
 #X connect 20 0 15 0;
+#X connect 22 0 15 0;
+#X connect 23 0 15 0;

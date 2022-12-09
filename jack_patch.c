@@ -137,10 +137,8 @@ void jackpatch_query(t_jackpatch *x,
             return;
         logpost(x, 3,
                 "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
-
         ports = jack_port_get_all_connections(jc,(jack_port_t *)jack_port_by_name(jc, x->source));
         int connected = 0;
-
         if(ports)
         {
             while (ports[n])
@@ -153,13 +151,51 @@ void jackpatch_query(t_jackpatch *x,
                     break;
                 }
                 n++;
-
             }
             jack_free(ports);
         }
         outlet_float(x->connected, connected);
     } else {
         logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+    }
+}
+
+void jackpatch_get_connections(t_jackpatch *x,
+                    t_symbol *client, t_symbol *port)
+{
+    if (jc)
+    {
+        const char **ports;
+        int l = 0;
+        int n = 0;
+        t_symbol *s_port, *s_client;
+        char *t;
+        if(jackpatch_getnames(x, client, port, client, port))
+            return;
+        logpost(x, 3,
+                "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
+        ports = jack_port_get_all_connections(jc,(jack_port_t *)jack_port_by_name(jc, x->source));
+        if(ports)
+        {
+            while (ports[n])
+            {
+                l = strlen(ports[n]);
+                t = strchr(ports[n],':');
+                if (t)
+                {
+                    s_port = gensym(strchr(ports[n], ':') + 1);
+                    int clientlen = l - strlen(s_port->s_name) - 1;
+                    strncpy(x->buffer, ports[n], clientlen);
+                    x->buffer[clientlen] = '\0';
+                    s_client = gensym(x->buffer);
+                    SETSYMBOL(x->a_outlist,s_client);
+                    SETSYMBOL(x->a_outlist+1,s_port);
+                    outlet_list(x->output_ports,&s_list,2, x->a_outlist);
+                }
+                n++;
+            }
+        }
+        jack_free(ports);
     }
 }
 
@@ -246,13 +282,8 @@ void jackpatch_input(t_jackpatch *x, t_symbol *s,int argc, t_atom *argv)
                     expflag = 1;
                 }
 
-
             }
-
-
         }
-
-
         ports = jack_get_ports (jc, x->expression,NULL,portflags|JackPortIsOutput);
         n=0;
         if (ports)
@@ -279,12 +310,10 @@ void jackpatch_input(t_jackpatch *x, t_symbol *s,int argc, t_atom *argv)
                     // output in output-outlet
                     outlet_list(x->output_ports,&s_list,2, x->a_outlist);
                 }
-
                 n++;
             }
         }
         free(ports);
-
         ports = jack_get_ports (jc, x->expression,NULL,portflags|JackPortIsInput);
         n=0;
         if (ports)
@@ -293,7 +322,6 @@ void jackpatch_input(t_jackpatch *x, t_symbol *s,int argc, t_atom *argv)
             {
                 l = strlen(ports[n]);
                 t = strchr(ports[n],':');
-
                 if (t)
                 {
                     s_port = gensym(strchr(ports[n], ':') + 1);
@@ -309,16 +337,14 @@ void jackpatch_input(t_jackpatch *x, t_symbol *s,int argc, t_atom *argv)
                     // output in output-outlet
                     outlet_list(x->input_ports,&s_list,2, x->a_outlist);
                 }
-
-
                 n++;
             }
         }
         free(ports);
-
         strcpy(x->expression,"");//reset regex
+    } else {
+        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
-
 }
 
 void *jackpatch_new(void)
@@ -345,5 +371,7 @@ void jack_patch_setup(void)
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addmethod(jackpatch_class, (t_method)jackpatch_query, gensym("query"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
+    class_addmethod(jackpatch_class, (t_method)jackpatch_get_connections, gensym("get_connections"),
+        A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addanything(jackpatch_class, jackpatch_input);
 }
