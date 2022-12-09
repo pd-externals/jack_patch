@@ -15,7 +15,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
  * jack_patch
- * this can query and set the port connections on the jack system
+ * this can query and adjust the port connections on the jack system
  */
 
 #include "m_pd.h"
@@ -160,8 +160,7 @@ void jackpatch_query(t_jackpatch *x,
     }
 }
 
-void jackpatch_get_connections(t_jackpatch *x,
-                    t_symbol *client, t_symbol *port)
+void jackpatch_get_connections(t_jackpatch *x, t_symbol *client, t_symbol *port)
 {
     if (jc)
     {
@@ -199,7 +198,7 @@ void jackpatch_get_connections(t_jackpatch *x,
     }
 }
 
-void jackpatch_input(t_jackpatch *x, t_symbol *s,int argc, t_atom *argv)
+void jackpatch_get_outputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
 {
     if (jc)
     {
@@ -207,141 +206,34 @@ void jackpatch_input(t_jackpatch *x, t_symbol *s,int argc, t_atom *argv)
 
         int l = 0;
         int n = 0;
-        int keyflag = 0;
-        int expflag =0;
         int portflags = 0;
-        t_symbol *s_client;
-        t_symbol *s_port;
         char *t;
 
-        if (!strcmp(s->s_name,"bang"))
-        {
-            strcpy(x->expression,"");
-            expflag = 1;
-        }
-        else
-        {
+        portflags = portflags | JackPortIsOutput;
 
-            //parse symbol s and all arguments for keywords:
-            //physical,virtual,input and output
-
-            if (!strcmp(s->s_name,"physical"))
-            {
-                portflags = portflags | JackPortIsPhysical;
-                keyflag = 1;
-            }
-            if (!strcmp(s->s_name,"virtual"))
-            {
-                portflags = portflags & (~JackPortIsPhysical);
-                keyflag = 1;
-            }
-            if (!strcmp(s->s_name,"input"))
-            {
-                portflags = portflags | JackPortIsInput;
-                keyflag = 1;
-            }
-
-            if (!strcmp(s->s_name,"output"))
-            {
-                portflags = portflags | JackPortIsOutput;
-                keyflag = 1;
-            }
-            if (!keyflag)
-            {
-                strcpy(x->expression,s->s_name);
-                expflag = 1;
-            }
-            for (n=0; n<argc; n++)
-            {
-                keyflag = 0;
-                atom_string(argv+n, x->buffer,128);
-                if (!strcmp(x->buffer,"physical"))
-                {
-                    portflags = portflags | JackPortIsPhysical;
-                    keyflag = 1;
-                }
-                if (!strcmp(x->buffer,"virtual"))
-                {
-                    portflags = portflags & (~JackPortIsPhysical);
-                    keyflag = 1;
-                }
-                if (!strcmp(x->buffer,"input"))
-                {
-                    portflags = portflags | JackPortIsInput;
-                    keyflag = 1;
-                }
-
-                if (!strcmp(x->buffer,"output"))
-                {
-                    portflags = portflags | JackPortIsOutput;
-                    keyflag = 1;
-                }
-                if (!keyflag && !expflag)
-                {
-                    strcpy(x->expression, x->buffer);
-                    expflag = 1;
-                }
-
-            }
-        }
-        ports = jack_get_ports (jc, x->expression,NULL,portflags|JackPortIsOutput);
+        ports = jack_get_ports (jc, x->expression,NULL,portflags);
         n=0;
         if (ports)
         {
             while (ports[n])
             {
-                //seperate port and client
-
                 l = strlen(ports[n]);
                 t = strchr(ports[n],':');
-
                 if (t)
                 {
                     s_port = gensym(strchr(ports[n], ':') + 1);
-
                     int clientlen = l - strlen(s_port->s_name) - 1;
                     strncpy(x->buffer, ports[n], clientlen);
                     x->buffer[clientlen] = '\0';
                     s_client = gensym(x->buffer);
-
                     SETSYMBOL(x->a_outlist,s_client);
                     SETSYMBOL(x->a_outlist+1,s_port);
-
-                    // output in output-outlet
                     outlet_list(x->output_ports,&s_list,2, x->a_outlist);
                 }
                 n++;
             }
         }
-        free(ports);
-        ports = jack_get_ports (jc, x->expression,NULL,portflags|JackPortIsInput);
-        n=0;
-        if (ports)
-        {
-            while (ports[n])
-            {
-                l = strlen(ports[n]);
-                t = strchr(ports[n],':');
-                if (t)
-                {
-                    s_port = gensym(strchr(ports[n], ':') + 1);
-
-                    int clientlen = l - strlen(s_port->s_name) - 1;
-                    strncpy(x->buffer, ports[n], clientlen);
-                    x->buffer[clientlen] = '\0';
-                    s_client = gensym(x->buffer);
-
-                    SETSYMBOL(x->a_outlist,s_client);
-                    SETSYMBOL(x->a_outlist+1,s_port);
-
-                    // output in output-outlet
-                    outlet_list(x->input_ports,&s_list,2, x->a_outlist);
-                }
-                n++;
-            }
-        }
-        free(ports);
-        strcpy(x->expression,"");//reset regex
+        jack_free(ports);
     } else {
         logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
@@ -373,5 +265,8 @@ void jack_patch_setup(void)
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addmethod(jackpatch_class, (t_method)jackpatch_get_connections, gensym("get_connections"),
         A_DEFSYMBOL, A_DEFSYMBOL, 0);
-    class_addanything(jackpatch_class, jackpatch_input);
+    class_addmethod(jackpatch_class, (t_method)jackpatch_get_outputs, gensym("get_outputs"),
+        A_DEFSYMBOL, A_DEFSYMBOL, 0);
+    class_addmethod(jackpatch_class, (t_method)jackpatch_get_inputs, gensym("get_inputs"),
+        A_DEFSYMBOL, A_DEFSYMBOL, 0);
 }
