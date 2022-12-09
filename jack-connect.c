@@ -38,10 +38,19 @@ typedef struct _jackconnect
 
 static jack_client_t *jc;
 
-static void jackconnect_getnames(t_jackconnect *x,
+static int jackconnect_getnames(t_jackconnect *x,
                                 t_symbol *output_client, t_symbol *output_port,
                                 t_symbol *input_client, t_symbol *input_port)
 {
+    // check if all arguments have been specified
+    if(!strcmp(input_port->s_name, "")
+        || !strcmp(input_client->s_name, "")
+        || !strcmp(output_port->s_name, "")
+        || !strcmp(output_client->s_name, ""))
+    {
+        logpost(x, 1, "%s: not enough arguments given", CLASS_NAME);
+        return 1;
+    }
     char* to = x->source;
     to = (char*)stpcpy( to, output_client->s_name);
     to = (char*)stpcpy(to,":");
@@ -50,7 +59,7 @@ static void jackconnect_getnames(t_jackconnect *x,
     to = (char*)stpcpy(to, input_client->s_name);
     to = (char*)stpcpy(to,":");
     to = (char*)stpcpy(to, input_port->s_name);
-
+    return 0;
 }
 
 static void jackconnect_connect(t_jackconnect *x,
@@ -61,7 +70,8 @@ static void jackconnect_connect(t_jackconnect *x,
     {
         int status;
         int connected = 0;
-        jackconnect_getnames(x, output_client, output_port, input_client, input_port);
+        if(jackconnect_getnames(x, output_client, output_port, input_client, input_port))
+            return;
         logpost(x, 3,
                 "[%s] connecting '%s' --> '%s'", CLASS_NAME,  x->source, x->destination);
         status = jack_connect(jc, x->source, x->destination);
@@ -78,7 +88,8 @@ static void jackconnect_disconnect(t_jackconnect *x,
 {
     if (jc)
     {
-        jackconnect_getnames(x, output_client, output_port, input_client, input_port);
+        if(jackconnect_getnames(x, output_client, output_port, input_client, input_port))
+            return;
         jack_disconnect(jc, x->source, x->destination);
         outlet_float(x->x_obj.ob_outlet, 0);
         logpost(x, 3,
@@ -96,7 +107,8 @@ static void jackconnect_query(t_jackconnect *x,
     {
         const char **ports;
         int n=0;
-        jackconnect_getnames(x, output_client, output_port, input_client, input_port);
+        if(jackconnect_getnames(x, output_client, output_port, input_client, input_port))
+            return;
         logpost(x, 3,
                 "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
 
