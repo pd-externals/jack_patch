@@ -18,7 +18,6 @@
  * this can query and set the port connections on the jack system
  */
 
-#include "jackx.h"
 #include "m_pd.h"
 
 #include <errno.h>
@@ -38,6 +37,28 @@ typedef struct _jackpatch
 } t_jackpatch;
 
 static jack_client_t *jc;
+
+jack_client_t * jackx_get_jack_client()
+{
+    if (!jc)
+    {
+        jack_status_t status;
+        jack_options_t options = JackNoStartServer;
+        jc = jack_client_open ("jackx-pd", options, &status, NULL);
+        if (status & JackServerFailed) {
+            pd_error(NULL, "jackx: unable to connect to JACK server");
+            jc = NULL;
+        }
+        if (status) {
+            if (status & JackServerStarted) {
+                verbose(1, "jackx: started server");
+            } else {
+                pd_error(NULL, "jackx: server returned status %d", status);
+            }
+        }
+    }
+    return jc;
+}
 
 int jackpatch_getnames(t_jackpatch *x,
                                 t_symbol *output_client, t_symbol *output_port,

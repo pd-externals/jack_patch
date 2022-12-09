@@ -2,19 +2,13 @@
 
 lib.name = jack_patch
 
-class.sources = \
-    jack_patch.c
-#    jack-ports.c
-
-shared.sources = \
-    libjackx.c
+class.sources = jack_patch.c
 
 ldlibs = -ljack
 
 datafiles = \
-    jack-connect-help.pd \
-    jack-ports-help.pd \
-    jackx-meta.pd \
+    jack_patch-help.pd \
+    jack_patch-meta.pd \
     LICENSE.txt \
     README.txt
 

@@ -1,0 +1,8 @@
+#N canvas 15 49 200 200 10;
+#N canvas 25 49 420 300 META 0;
+#X text 13 71 NAME jack_patch;
+#X text 10 35 AUTHOR Gerard van Dongen;
+#X text 10 55 AUTHOR Roman Haefeli;
+#X text 10 10 VERSION 0.2;
+#X text 10 90 LICENSE GPL;
+#X restore 10 10 pd META;
