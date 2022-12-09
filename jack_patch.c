@@ -35,7 +35,7 @@ typedef struct _jackpatch
     char source[321];
     char destination[321];
     t_outlet *connected, *input_ports, *output_ports;
-    char expression[128];
+    char expression[321];
     char *buffer; //used internally it doesn't have to be reserved every time
     t_atom *a_outlist;
 } t_jackpatch;
@@ -203,14 +203,16 @@ void jackpatch_get_outputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
     if (jc)
     {
         const char ** ports;
-
         int l = 0;
         int n = 0;
         int portflags = 0;
         char *t;
-
+        t_symbol *s_port, *s_client;
         portflags = portflags | JackPortIsOutput;
-
+        char* to = x->expression;
+        to = (char*)stpcpy( to, client->s_name);
+        to = (char*)stpcpy(to,":");
+        to = (char*)stpcpy(to, port->s_name);
         ports = jack_get_ports (jc, x->expression,NULL,portflags);
         n=0;
         if (ports)
@@ -267,6 +269,6 @@ void jack_patch_setup(void)
         A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addmethod(jackpatch_class, (t_method)jackpatch_get_outputs, gensym("get_outputs"),
         A_DEFSYMBOL, A_DEFSYMBOL, 0);
-    class_addmethod(jackpatch_class, (t_method)jackpatch_get_inputs, gensym("get_inputs"),
-        A_DEFSYMBOL, A_DEFSYMBOL, 0);
+    //class_addmethod(jackpatch_class, (t_method)jackpatch_get_inputs, gensym("get_inputs"),
+    //    A_DEFSYMBOL, A_DEFSYMBOL, 0);
 }
