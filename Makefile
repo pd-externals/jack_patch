@@ -1,10 +1,10 @@
-# Makefile for mp3cast~
+# Makefile for jack_patch
 
-lib.name = jackx
+lib.name = jack_patch
 
 class.sources = \
-    jack-connect.c \
-    jack-ports.c
+    jack_patch.c
+#    jack-ports.c
 
 shared.sources = \
     libjackx.c

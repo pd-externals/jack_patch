@@ -1,5 +1,6 @@
 /* jack utility externals for linux pd
  * copyright 2003 Gerard van Dongen gml@xs4all.nl
+ * copyright 2022 Roman Haefeli <reduzent@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -13,7 +14,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * jack-connect
+ * jack_patch
  * this can query and set the port connections on the jack system
  */
 
@@ -25,20 +26,20 @@
 #include <string.h>
 #include <jack/jack.h>
 
-#define CLASS_NAME "jack-connect"
+#define CLASS_NAME "jack_patch"
 
-static t_class *jackconnect_class;
+static t_class *jackpatch_class;
 
-typedef struct _jackconnect
+typedef struct _jackpatch
 {
     t_object x_obj;
     char source[321];
     char destination[321];
-} t_jackconnect;
+} t_jackpatch;
 
 static jack_client_t *jc;
 
-static int jackconnect_getnames(t_jackconnect *x,
+int jackpatch_getnames(t_jackpatch *x,
                                 t_symbol *output_client, t_symbol *output_port,
                                 t_symbol *input_client, t_symbol *input_port)
 {
@@ -62,7 +63,7 @@ static int jackconnect_getnames(t_jackconnect *x,
     return 0;
 }
 
-static void jackconnect_connect(t_jackconnect *x,
+void jackpatch_connect(t_jackpatch *x,
                                 t_symbol *output_client, t_symbol *output_port,
                                 t_symbol *input_client, t_symbol *input_port)
 {
@@ -70,7 +71,7 @@ static void jackconnect_connect(t_jackconnect *x,
     {
         int status;
         int connected = 0;
-        if(jackconnect_getnames(x, output_client, output_port, input_client, input_port))
+        if(jackpatch_getnames(x, output_client, output_port, input_client, input_port))
             return;
         logpost(x, 3,
                 "[%s] connecting '%s' --> '%s'", CLASS_NAME,  x->source, x->destination);
@@ -82,13 +83,13 @@ static void jackconnect_connect(t_jackconnect *x,
     }
 }
 
-static void jackconnect_disconnect(t_jackconnect *x,
+void jackpatch_disconnect(t_jackpatch *x,
                                 t_symbol *output_client, t_symbol *output_port,
                                 t_symbol *input_client, t_symbol *input_port)
 {
     if (jc)
     {
-        if(jackconnect_getnames(x, output_client, output_port, input_client, input_port))
+        if(jackpatch_getnames(x, output_client, output_port, input_client, input_port))
             return;
         jack_disconnect(jc, x->source, x->destination);
         outlet_float(x->x_obj.ob_outlet, 0);
@@ -99,15 +100,15 @@ static void jackconnect_disconnect(t_jackconnect *x,
     }
 }
 
-static void jackconnect_query(t_jackconnect *x,
-                                t_symbol *output_client, t_symbol *output_port,
-                                t_symbol *input_client, t_symbol *input_port)
+void jackpatch_query(t_jackpatch *x,
+                    t_symbol *output_client, t_symbol *output_port,
+                    t_symbol *input_client, t_symbol *input_port)
 {
     if (jc)
     {
         const char **ports;
         int n=0;
-        if(jackconnect_getnames(x, output_client, output_port, input_client, input_port))
+        if(jackpatch_getnames(x, output_client, output_port, input_client, input_port))
             return;
         logpost(x, 3,
                 "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
@@ -137,29 +138,24 @@ static void jackconnect_query(t_jackconnect *x,
     }
 }
 
-static void *jackconnect_new(void)
+void *jackpatch_new(void)
 {
-    t_jackconnect * x = (t_jackconnect *)pd_new(jackconnect_class);
+    t_jackpatch * x = (t_jackpatch *)pd_new(jackpatch_class);
     outlet_new(&x->x_obj, &s_float);
     return (void*)x;
 }
 
-static void setup(void)
+void jack_patch_setup(void)
 {
     jc = jackx_get_jack_client();
 
-    jackconnect_class = class_new(gensym("jack-connect"), (t_newmethod)jackconnect_new,
-                                  0, sizeof(t_jackconnect), CLASS_DEFAULT, 0);
+    jackpatch_class = class_new(gensym(CLASS_NAME), (t_newmethod)jackpatch_new,
+                                  0, sizeof(t_jackpatch), CLASS_DEFAULT, 0);
 
-    class_addmethod(jackconnect_class, (t_method)jackconnect_connect, gensym("connect"),
+    class_addmethod(jackpatch_class, (t_method)jackpatch_connect, gensym("connect"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
-    class_addmethod(jackconnect_class, (t_method)jackconnect_disconnect, gensym("disconnect"),
+    class_addmethod(jackpatch_class, (t_method)jackpatch_disconnect, gensym("disconnect"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
-    class_addmethod(jackconnect_class, (t_method)jackconnect_query, gensym("query"),
+    class_addmethod(jackpatch_class, (t_method)jackpatch_query, gensym("query"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
-}
-
-void setup_jack0x2dconnect(void)
-{
-    setup();
 }
