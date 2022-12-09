@@ -25,6 +25,7 @@
 #include <string.h>
 #include <jack/jack.h>
 
+#define CLASS_NAME "jack-connect"
 
 static t_class *jackconnect_class;
 
@@ -36,7 +37,6 @@ typedef struct _jackconnect
 } t_jackconnect;
 
 static jack_client_t *jc;
-
 
 static void jackconnect_getnames(t_jackconnect *x,
                                 t_symbol *output_client, t_symbol *output_port,
@@ -63,10 +63,12 @@ static void jackconnect_connect(t_jackconnect *x,
         int connected = 0;
         jackconnect_getnames(x, output_client, output_port, input_client, input_port);
         logpost(x, 3,
-                "[jack-connect] connecting '%s' --> '%s'", x->source, x->destination);
+                "[%s] connecting '%s' --> '%s'", CLASS_NAME,  x->source, x->destination);
         status = jack_connect(jc, x->source, x->destination);
         if ((!status) || status == EEXIST) connected = 1;
         outlet_float(x->x_obj.ob_outlet, connected);
+    } else {
+        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -80,7 +82,9 @@ static void jackconnect_disconnect(t_jackconnect *x,
         jack_disconnect(jc, x->source, x->destination);
         outlet_float(x->x_obj.ob_outlet, 0);
         logpost(x, 3,
-                "[jack-connect] disconnecting '%s' --> '%s'", x->source, x->destination);
+                "[%s] disconnecting '%s' --> '%s'", CLASS_NAME, x->source, x->destination);
+    } else {
+        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -116,6 +120,8 @@ static void jackconnect_query(t_jackconnect *x,
             jack_free(ports);
         }
         outlet_float(x->x_obj.ob_outlet, connected);
+    } else {
+        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
