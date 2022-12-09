@@ -34,6 +34,10 @@ typedef struct _jackpatch
     t_object x_obj;
     char source[321];
     char destination[321];
+    t_outlet *connected, *input_ports, *output_ports;
+    char expression[128];
+    char *buffer; //used internally it doesn't have to be reserved every time
+    t_atom *a_outlist;
 } t_jackpatch;
 
 static jack_client_t *jc;
@@ -98,7 +102,7 @@ void jackpatch_connect(t_jackpatch *x,
                 "[%s] connecting '%s' --> '%s'", CLASS_NAME,  x->source, x->destination);
         status = jack_connect(jc, x->source, x->destination);
         if ((!status) || status == EEXIST) connected = 1;
-        outlet_float(x->x_obj.ob_outlet, connected);
+        outlet_float(x->connected, connected);
     } else {
         logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
@@ -113,7 +117,7 @@ void jackpatch_disconnect(t_jackpatch *x,
         if(jackpatch_getnames(x, output_client, output_port, input_client, input_port))
             return;
         jack_disconnect(jc, x->source, x->destination);
-        outlet_float(x->x_obj.ob_outlet, 0);
+        outlet_float(x->connected, 0);
         logpost(x, 3,
                 "[%s] disconnecting '%s' --> '%s'", CLASS_NAME, x->source, x->destination);
     } else {
@@ -153,16 +157,178 @@ void jackpatch_query(t_jackpatch *x,
             }
             jack_free(ports);
         }
-        outlet_float(x->x_obj.ob_outlet, connected);
+        outlet_float(x->connected, connected);
     } else {
         logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
+void jackpatch_input(t_jackpatch *x, t_symbol *s,int argc, t_atom *argv)
+{
+    if (jc)
+    {
+        const char ** ports;
+
+        int l = 0;
+        int n = 0;
+        int keyflag = 0;
+        int expflag =0;
+        int portflags = 0;
+        t_symbol *s_client;
+        t_symbol *s_port;
+        char *t;
+
+        if (!strcmp(s->s_name,"bang"))
+        {
+            strcpy(x->expression,"");
+            expflag = 1;
+        }
+        else
+        {
+
+            //parse symbol s and all arguments for keywords:
+            //physical,virtual,input and output
+
+            if (!strcmp(s->s_name,"physical"))
+            {
+                portflags = portflags | JackPortIsPhysical;
+                keyflag = 1;
+            }
+            if (!strcmp(s->s_name,"virtual"))
+            {
+                portflags = portflags & (~JackPortIsPhysical);
+                keyflag = 1;
+            }
+            if (!strcmp(s->s_name,"input"))
+            {
+                portflags = portflags | JackPortIsInput;
+                keyflag = 1;
+            }
+
+            if (!strcmp(s->s_name,"output"))
+            {
+                portflags = portflags | JackPortIsOutput;
+                keyflag = 1;
+            }
+            if (!keyflag)
+            {
+                strcpy(x->expression,s->s_name);
+                expflag = 1;
+            }
+            for (n=0; n<argc; n++)
+            {
+                keyflag = 0;
+                atom_string(argv+n, x->buffer,128);
+                if (!strcmp(x->buffer,"physical"))
+                {
+                    portflags = portflags | JackPortIsPhysical;
+                    keyflag = 1;
+                }
+                if (!strcmp(x->buffer,"virtual"))
+                {
+                    portflags = portflags & (~JackPortIsPhysical);
+                    keyflag = 1;
+                }
+                if (!strcmp(x->buffer,"input"))
+                {
+                    portflags = portflags | JackPortIsInput;
+                    keyflag = 1;
+                }
+
+                if (!strcmp(x->buffer,"output"))
+                {
+                    portflags = portflags | JackPortIsOutput;
+                    keyflag = 1;
+                }
+                if (!keyflag && !expflag)
+                {
+                    strcpy(x->expression, x->buffer);
+                    expflag = 1;
+                }
+
+
+            }
+
+
+        }
+
+
+        ports = jack_get_ports (jc, x->expression,NULL,portflags|JackPortIsOutput);
+        n=0;
+        if (ports)
+        {
+            while (ports[n])
+            {
+                //seperate port and client
+
+                l = strlen(ports[n]);
+                t = strchr(ports[n],':');
+
+                if (t)
+                {
+                    s_port = gensym(strchr(ports[n], ':') + 1);
+
+                    int clientlen = l - strlen(s_port->s_name) - 1;
+                    strncpy(x->buffer, ports[n], clientlen);
+                    x->buffer[clientlen] = '\0';
+                    s_client = gensym(x->buffer);
+
+                    SETSYMBOL(x->a_outlist,s_client);
+                    SETSYMBOL(x->a_outlist+1,s_port);
+
+                    // output in output-outlet
+                    outlet_list(x->output_ports,&s_list,2, x->a_outlist);
+                }
+
+                n++;
+            }
+        }
+        free(ports);
+
+        ports = jack_get_ports (jc, x->expression,NULL,portflags|JackPortIsInput);
+        n=0;
+        if (ports)
+        {
+            while (ports[n])
+            {
+                l = strlen(ports[n]);
+                t = strchr(ports[n],':');
+
+                if (t)
+                {
+                    s_port = gensym(strchr(ports[n], ':') + 1);
+
+                    int clientlen = l - strlen(s_port->s_name) - 1;
+                    strncpy(x->buffer, ports[n], clientlen);
+                    x->buffer[clientlen] = '\0';
+                    s_client = gensym(x->buffer);
+
+                    SETSYMBOL(x->a_outlist,s_client);
+                    SETSYMBOL(x->a_outlist+1,s_port);
+
+                    // output in output-outlet
+                    outlet_list(x->input_ports,&s_list,2, x->a_outlist);
+                }
+
+
+                n++;
+            }
+        }
+        free(ports);
+
+        strcpy(x->expression,"");//reset regex
+    }
+
+}
+
 void *jackpatch_new(void)
 {
     t_jackpatch * x = (t_jackpatch *)pd_new(jackpatch_class);
-    outlet_new(&x->x_obj, &s_float);
+    x->connected = outlet_new(&x->x_obj, &s_float);
+    x->output_ports = outlet_new(&x->x_obj, &s_list);
+    x->input_ports = outlet_new(&x->x_obj, &s_list);
+    x->a_outlist = getbytes(3 * sizeof(t_atom));
+    x->buffer = getbytes(128);
     return (void*)x;
 }
 
@@ -179,4 +345,5 @@ void jack_patch_setup(void)
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addmethod(jackpatch_class, (t_method)jackpatch_query, gensym("query"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
+    class_addanything(jackpatch_class, jackpatch_input);
 }
