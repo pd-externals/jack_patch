@@ -44,24 +44,13 @@ typedef struct _jackpatch
 
 static jack_client_t *jc;
 
-jack_client_t * jackx_get_jack_client()
+jack_client_t * jackpatch_get_jack_client()
 {
     if (!jc)
     {
         jack_status_t status;
         jack_options_t options = JackNoStartServer;
-        jc = jack_client_open ("jackx-pd", options, &status, NULL);
-        if (status & JackServerFailed) {
-            pd_error(NULL, "jackx: unable to connect to JACK server");
-            jc = NULL;
-        }
-        if (status) {
-            if (status & JackServerStarted) {
-                verbose(1, "jackx: started server");
-            } else {
-                pd_error(NULL, "jackx: server returned status %d", status);
-            }
-        }
+        jc = jack_client_open ("jack_patch-pd", options, &status, NULL);
     }
     return jc;
 }
@@ -108,7 +97,7 @@ int jackpatch_getnames(t_jackpatch *x,
         || !strcmp(output_port->s_name, "")
         || !strcmp(output_client->s_name, ""))
     {
-        logpost(x, 1, "%s: not enough arguments given", CLASS_NAME);
+        pd_error(x, "%s: not enough arguments given", CLASS_NAME);
         return 1;
     }
     char* to = x->source;
@@ -138,7 +127,7 @@ void jackpatch_connect(t_jackpatch *x,
         if ((!status) || status == EEXIST) connected = 1;
         outlet_float(x->connected, connected);
     } else {
-        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+        pd_error(x, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -155,7 +144,7 @@ void jackpatch_disconnect(t_jackpatch *x,
         logpost(x, 3,
                 "[%s] disconnecting '%s' --> '%s'", CLASS_NAME, x->source, x->destination);
     } else {
-        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+        pd_error(x, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -190,7 +179,7 @@ void jackpatch_query(t_jackpatch *x,
         }
         outlet_float(x->connected, connected);
     } else {
-        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+        pd_error(x, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -207,7 +196,7 @@ void jackpatch_get_connections(t_jackpatch *x, t_symbol *client, t_symbol *port)
         jackpatch_output_ports(x, ports);
         jack_free(ports);
     } else {
-        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+        pd_error(x, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -225,7 +214,7 @@ void jackpatch_get_outputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
         jackpatch_output_ports(x, ports);
         jack_free(ports);
     } else {
-        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+        pd_error(x, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -243,7 +232,7 @@ void jackpatch_get_inputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
         jackpatch_output_ports(x, ports);
         jack_free(ports);
     } else {
-        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+        pd_error(x, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -281,7 +270,7 @@ void jackpatch_get_clients(t_jackpatch *x)
         }
         jack_free(ports);
     } else {
-        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+        pd_error(x, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -300,7 +289,7 @@ void *jackpatch_new(void)
 
 void jack_patch_setup(void)
 {
-    jc = jackx_get_jack_client();
+    jc = jackpatch_get_jack_client();
 
     jackpatch_class = class_new(gensym(CLASS_NAME), (t_newmethod)jackpatch_new,
                                   0, sizeof(t_jackpatch), CLASS_DEFAULT, 0);
