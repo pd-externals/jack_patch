@@ -229,6 +229,24 @@ void jackpatch_get_outputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
     }
 }
 
+void jackpatch_get_inputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
+{
+    if (jc)
+    {
+        const char ** ports;
+        int portflags = JackPortIsInput;
+        char* to = x->expression;
+        to = (char*)stpcpy( to, client->s_name);
+        to = (char*)stpcpy(to,":");
+        to = (char*)stpcpy(to, port->s_name);
+        ports = jack_get_ports (jc, x->expression,NULL,portflags);
+        jackpatch_output_ports(x, ports);
+        jack_free(ports);
+    } else {
+        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
+    }
+}
+
 void *jackpatch_new(void)
 {
     t_jackpatch * x = (t_jackpatch *)pd_new(jackpatch_class);
@@ -259,6 +277,6 @@ void jack_patch_setup(void)
         A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addmethod(jackpatch_class, (t_method)jackpatch_get_outputs, gensym("get_outputs"),
         A_DEFSYMBOL, A_DEFSYMBOL, 0);
-    //class_addmethod(jackpatch_class, (t_method)jackpatch_get_inputs, gensym("get_inputs"),
-    //    A_DEFSYMBOL, A_DEFSYMBOL, 0);
+    class_addmethod(jackpatch_class, (t_method)jackpatch_get_inputs, gensym("get_inputs"),
+        A_DEFSYMBOL, A_DEFSYMBOL, 0);
 }
