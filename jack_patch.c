@@ -37,6 +37,8 @@ typedef struct _jackpatch
     t_outlet *connected, *input_ports, *output_ports;
     char expression[321];
     char *buffer; //used internally it doesn't have to be reserved every time
+    t_symbol *outputsel;
+    t_symbol *inputsel;
     t_atom *a_outlist;
 } t_jackpatch;
 
@@ -62,6 +64,38 @@ jack_client_t * jackx_get_jack_client()
         }
     }
     return jc;
+}
+
+void jackpatch_output_ports(t_jackpatch *x, const char **ports)
+{
+    int l = 0;
+    int n = 0;
+    int portflags = 0;
+    char *t;
+    t_symbol *s_client, *s_port;
+    t_symbol *s_sel = x->inputsel;
+    if (ports)
+    {
+        while (ports[n])
+        {
+            l = strlen(ports[n]);
+            t = strchr(ports[n],':');
+            if (t)
+            {
+                portflags = jack_port_flags(jack_port_by_name(jc, ports[n]));
+                s_port = gensym(strchr(ports[n], ':') + 1);
+                int clientlen = l - strlen(s_port->s_name) - 1;
+                strncpy(x->buffer, ports[n], clientlen);
+                x->buffer[clientlen] = '\0';
+                s_client = gensym(x->buffer);
+                SETSYMBOL(x->a_outlist,s_client);
+                SETSYMBOL(x->a_outlist+1,s_port);
+                if(portflags & JackPortIsOutput) s_sel = x->outputsel;
+                outlet_anything(x->output_ports,s_sel,2, x->a_outlist);
+            }
+            n++;
+        }
+    }
 }
 
 int jackpatch_getnames(t_jackpatch *x,
@@ -165,36 +199,15 @@ void jackpatch_get_connections(t_jackpatch *x, t_symbol *client, t_symbol *port)
     if (jc)
     {
         const char **ports;
-        int l = 0;
-        int n = 0;
-        t_symbol *s_port, *s_client;
-        char *t;
         if(jackpatch_getnames(x, client, port, client, port))
             return;
         logpost(x, 3,
                 "[jack-connect] querying connection '%s' --> '%s'", x->source, x->destination);
         ports = jack_port_get_all_connections(jc,(jack_port_t *)jack_port_by_name(jc, x->source));
-        if(ports)
-        {
-            while (ports[n])
-            {
-                l = strlen(ports[n]);
-                t = strchr(ports[n],':');
-                if (t)
-                {
-                    s_port = gensym(strchr(ports[n], ':') + 1);
-                    int clientlen = l - strlen(s_port->s_name) - 1;
-                    strncpy(x->buffer, ports[n], clientlen);
-                    x->buffer[clientlen] = '\0';
-                    s_client = gensym(x->buffer);
-                    SETSYMBOL(x->a_outlist,s_client);
-                    SETSYMBOL(x->a_outlist+1,s_port);
-                    outlet_list(x->output_ports,&s_list,2, x->a_outlist);
-                }
-                n++;
-            }
-        }
+        jackpatch_output_ports(x, ports);
         jack_free(ports);
+    } else {
+        logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
     }
 }
 
@@ -203,38 +216,13 @@ void jackpatch_get_outputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
     if (jc)
     {
         const char ** ports;
-        int l = 0;
-        int n = 0;
-        int portflags = 0;
-        char *t;
-        t_symbol *s_port, *s_client;
-        portflags = portflags | JackPortIsOutput;
+        int portflags = JackPortIsOutput;
         char* to = x->expression;
         to = (char*)stpcpy( to, client->s_name);
         to = (char*)stpcpy(to,":");
         to = (char*)stpcpy(to, port->s_name);
         ports = jack_get_ports (jc, x->expression,NULL,portflags);
-        n=0;
-        if (ports)
-        {
-            while (ports[n])
-            {
-                l = strlen(ports[n]);
-                t = strchr(ports[n],':');
-                if (t)
-                {
-                    s_port = gensym(strchr(ports[n], ':') + 1);
-                    int clientlen = l - strlen(s_port->s_name) - 1;
-                    strncpy(x->buffer, ports[n], clientlen);
-                    x->buffer[clientlen] = '\0';
-                    s_client = gensym(x->buffer);
-                    SETSYMBOL(x->a_outlist,s_client);
-                    SETSYMBOL(x->a_outlist+1,s_port);
-                    outlet_list(x->output_ports,&s_list,2, x->a_outlist);
-                }
-                n++;
-            }
-        }
+        jackpatch_output_ports(x, ports);
         jack_free(ports);
     } else {
         logpost(x, 1, "%s: JACK server is not running", CLASS_NAME);
@@ -245,10 +233,12 @@ void *jackpatch_new(void)
 {
     t_jackpatch * x = (t_jackpatch *)pd_new(jackpatch_class);
     x->connected = outlet_new(&x->x_obj, &s_float);
-    x->output_ports = outlet_new(&x->x_obj, &s_list);
+    x->output_ports = outlet_new(&x->x_obj, 0);
     x->input_ports = outlet_new(&x->x_obj, &s_list);
     x->a_outlist = getbytes(3 * sizeof(t_atom));
     x->buffer = getbytes(128);
+    x->outputsel = gensym("output");
+    x->inputsel = gensym("input");
     return (void*)x;
 }
 
