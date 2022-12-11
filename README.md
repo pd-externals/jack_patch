@@ -13,5 +13,5 @@ Supported methods include:
   * `get_connections`
   * `get_clients`
 
-Roman Haefeli, 2022
+Roman Haefeli, 2022\
 Based on jackx by Gerard van Dongen, 2003
