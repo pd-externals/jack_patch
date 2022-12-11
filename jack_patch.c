@@ -274,6 +274,12 @@ void jackpatch_get_clients(t_jackpatch *x)
     }
 }
 
+void jackpatch_free(t_jackpatch *x)
+{
+    free(x->buffer);
+    free(x->a_outlist);
+}
+
 void *jackpatch_new(void)
 {
     t_jackpatch * x = (t_jackpatch *)pd_new(jackpatch_class);
@@ -290,7 +296,8 @@ void jack_patch_setup(void)
     jc = jackpatch_get_jack_client();
 
     jackpatch_class = class_new(gensym(CLASS_NAME), (t_newmethod)jackpatch_new,
-                                  0, sizeof(t_jackpatch), CLASS_DEFAULT, 0);
+                                (t_method)jackpatch_free, sizeof(t_jackpatch),
+                                CLASS_DEFAULT, 0);
 
     class_addmethod(jackpatch_class, (t_method)jackpatch_connect, gensym("connect"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
