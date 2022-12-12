@@ -44,6 +44,10 @@ typedef struct _jackpatch
 
 static jack_client_t *jc;
 
+void jackpatch_reset_client() {
+    jc = (jack_client_t *)NULL;
+}
+
 jack_client_t * jackpatch_get_jack_client()
 {
     if (!jc)
@@ -51,6 +55,7 @@ jack_client_t * jackpatch_get_jack_client()
         jack_status_t status;
         jack_options_t options = JackNoStartServer;
         jc = jack_client_open ("jack_patch-pd", options, &status, NULL);
+        jack_on_shutdown(jc, jackpatch_reset_client, (void *)NULL);
     }
     return jc;
 }
