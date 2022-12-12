@@ -279,6 +279,16 @@ void jackpatch_get_clients(t_jackpatch *x)
     }
 }
 
+void jackpatch_is_running(t_jackpatch *x)
+{
+    if(jc)
+    {
+        outlet_float(x->output, 1);
+    } else {
+        outlet_float(x->output, 0);
+    }
+}
+
 void jackpatch_free(t_jackpatch *x)
 {
     free(x->buffer);
@@ -315,4 +325,5 @@ void jack_patch_setup(void)
     class_addmethod(jackpatch_class, (t_method)jackpatch_get_inputs, gensym("get_inputs"),
         A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addmethod(jackpatch_class, (t_method)jackpatch_get_clients, gensym("get_clients"), 0);
+    class_addmethod(jackpatch_class, (t_method)jackpatch_is_running, gensym("is_running"), 0);
 }
