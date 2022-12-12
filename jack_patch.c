@@ -288,17 +288,15 @@ void *jackpatch_new(void)
     x->buffer = getbytes(128);
     x->outputsel = gensym("output");
     x->inputsel = gensym("input");
+    jc = jackpatch_get_jack_client();
     return (void*)x;
 }
 
 void jack_patch_setup(void)
 {
-    jc = jackpatch_get_jack_client();
-
     jackpatch_class = class_new(gensym(CLASS_NAME), (t_newmethod)jackpatch_new,
                                 (t_method)jackpatch_free, sizeof(t_jackpatch),
                                 CLASS_DEFAULT, 0);
-
     class_addmethod(jackpatch_class, (t_method)jackpatch_connect, gensym("connect"),
         A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, A_DEFSYMBOL, 0);
     class_addmethod(jackpatch_class, (t_method)jackpatch_disconnect, gensym("disconnect"),
