@@ -14,7 +14,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * jack_patch
+ * jackpatch
  * this can query and adjust the port connections on the jack system
  */
 
@@ -25,7 +25,7 @@
 #include <string.h>
 #include <jack/jack.h>
 
-#define CLASS_NAME "jack_patch"
+#define CLASS_NAME "jackpatch"
 
 static t_class *jackpatch_class;
 
@@ -54,7 +54,7 @@ jack_client_t * jackpatch_get_jack_client()
     {
         jack_status_t status;
         jack_options_t options = JackNoStartServer;
-        jc = jack_client_open ("jack_patch-pd", options, &status, NULL);
+        jc = jack_client_open ("jackpatch-pd", options, &status, NULL);
         jack_on_shutdown(jc, jackpatch_reset_client, (void *)NULL);
     }
     return jc;
@@ -307,7 +307,7 @@ void *jackpatch_new(void)
     return (void*)x;
 }
 
-void jack_patch_setup(void)
+void jackpatch_setup(void)
 {
     jackpatch_class = class_new(gensym(CLASS_NAME), (t_newmethod)jackpatch_new,
                                 (t_method)jackpatch_free, sizeof(t_jackpatch),
