@@ -1,11 +1,11 @@
 #N canvas 15 49 200 200 10;
 #N canvas 25 49 416 189 META 0;
-#X text 11 71 NAME jack_patch;
 #X text 10 31 AUTHOR Gerard van Dongen;
 #X text 10 51 AUTHOR Roman Haefeli;
 #X text 10 10 VERSION 0.2;
 #X text 10 90 LICENSE GPL;
 #X text 9 109 DESCRIPTION manage Jack connections;
-#X text 9 129 WEBSITE http://github.com/pd-externals/jack_patch;
+#X text 9 129 WEBSITE http://github.com/pd-externals/jackpatch;
 #X text 9 153 RELEASE_DATE 2022;
+#X text 11 71 NAME jackpatch;
 #X restore 10 10 pd META;

@@ -1,4 +1,4 @@
-# Makefile for jack_patch
+# Makefile for jackpatch
 
 lib.name = jackpatch
 
