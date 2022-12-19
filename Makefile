@@ -1,14 +1,14 @@
 # Makefile for jack_patch
 
-lib.name = jack_patch
+lib.name = jackpatch
 
-class.sources = jack_patch.c
+class.sources = jackpatch.c
 
 ldlibs = -ljack
 
 datafiles = \
-    jack_patch-help.pd \
-    jack_patch-meta.pd \
+    jackpatch-help.pd \
+    jackpatch-meta.pd \
     LICENSE.txt \
     README.txt
 
