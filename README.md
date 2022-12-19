@@ -1,4 +1,4 @@
-# jack_patch - manage connections between JACK clients
+# jackpatch - manage connections between JACK clients
 
 This external is used to patch connections between clients. Also,
 it can look up available clients and ports. Regular expressions
