@@ -105,14 +105,8 @@ int jackpatch_getnames(t_jackpatch *x,
         pd_error(x, "%s: not enough arguments given", CLASS_NAME);
         return 1;
     }
-    char* to = x->source;
-    to = (char*)stpcpy( to, output_client->s_name);
-    to = (char*)stpcpy(to,":");
-    to = (char*)stpcpy(to, output_port->s_name);
-    to = x->destination;
-    to = (char*)stpcpy(to, input_client->s_name);
-    to = (char*)stpcpy(to,":");
-    to = (char*)stpcpy(to, input_port->s_name);
+    sprintf(x->source, "%s:%s", output_client->s_name, output_port->s_name);
+    sprintf(x->destination, "%s:%s", input_client->s_name, input_port->s_name);
     return 0;
 }
 
