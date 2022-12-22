@@ -5,6 +5,9 @@ lib.name = jackpatch
 class.sources = jackpatch.c
 
 ldlibs = -ljack
+define forWindows
+  ldlibs = -ljack64
+endef
 
 datafiles = \
     jackpatch-help.pd \
