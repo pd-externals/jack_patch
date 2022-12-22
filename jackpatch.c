@@ -205,10 +205,7 @@ void jackpatch_get_outputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
     {
         const char ** ports;
         int portflags = JackPortIsOutput;
-        char* to = x->expression;
-        to = (char*)stpcpy( to, client->s_name);
-        to = (char*)stpcpy(to,":");
-        to = (char*)stpcpy(to, port->s_name);
+        sprintf(x->expression, "%s:%s", client->s_name, port->s_name);
         ports = jack_get_ports (jc, x->expression,NULL,portflags);
         jackpatch_output_ports(x, ports);
         jack_free(ports);
@@ -223,10 +220,7 @@ void jackpatch_get_inputs(t_jackpatch *x, t_symbol *client, t_symbol *port)
     {
         const char ** ports;
         int portflags = JackPortIsInput;
-        char* to = x->expression;
-        to = (char*)stpcpy( to, client->s_name);
-        to = (char*)stpcpy(to,":");
-        to = (char*)stpcpy(to, port->s_name);
+        sprintf(x->expression, "%s:%s", client->s_name, port->s_name);
         ports = jack_get_ports (jc, x->expression,NULL,portflags);
         jackpatch_output_ports(x, ports);
         jack_free(ports);
