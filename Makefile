@@ -10,7 +10,7 @@ datafiles = \
     jackpatch-help.pd \
     jackpatch-meta.pd \
     LICENSE.txt \
-    README.txt
+    README.md
 
 
 # This Makefile is based on the Makefile from pd-lib-builder written by
@@ -19,3 +19,12 @@ datafiles = \
 
 PDLIBBUILDER_DIR=pd-lib-builder/
 include $(firstword $(wildcard $(PDLIBBUILDER_DIR)/Makefile.pdlibbuilder Makefile.pdlibbuilder))
+
+localdep_linux: install
+	scripts/localdeps.linux.sh -d "${installpath}/jackpatch.${extension}"
+
+localdep_macos: install
+	scripts/localdeps.macos.sh -d -s "${installpath}/jackpatch.${extension}"
+
+localdep_windows: install
+	scripts/localdeps.win.sh "${installpath}/jackpatch.${extension}"
