@@ -5,8 +5,11 @@ lib.name = jackpatch
 class.sources = jackpatch.c
 
 ldlibs = -ljack
+
 define forWindows
-  ldlibs = -ljack64
+  ifeq ($(MSYSTEM_CARCH), x86_64)
+    ldlibs = -ljack64
+  endif
 endef
 
 datafiles = \
@@ -30,4 +33,4 @@ localdep_macos: install
 	scripts/localdeps.macos.sh -d -s "${installpath}/jackpatch.${extension}"
 
 localdep_windows: install
-	scripts/localdeps.win.sh "${installpath}/jackpatch.${extension}"
+	scripts/localdeps.win.sh -I "C\:*libjack*" "${installpath}/jackpatch.${extension}"
