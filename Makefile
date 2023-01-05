@@ -33,4 +33,4 @@ localdep_macos: install
 	scripts/localdeps.macos.sh -d -s "${installpath}/jackpatch.${extension}"
 
 localdep_windows: install
-	scripts/localdeps.win.sh -I "C\:*libjack*" "${installpath}/jackpatch.${extension}"
+	scripts/localdeps.win.sh -I "*\:*windows*libjack*" "${installpath}/jackpatch.${extension}"
