@@ -2,7 +2,7 @@
 #N canvas 25 49 416 189 META 0;
 #X text 10 31 AUTHOR Gerard van Dongen;
 #X text 10 51 AUTHOR Roman Haefeli;
-#X text 10 10 VERSION 0.2;
+#X text 10 10 VERSION 0.3;
 #X text 10 90 LICENSE GPL;
 #X text 9 109 DESCRIPTION manage Jack connections;
 #X text 9 129 WEBSITE http://github.com/pd-externals/jackpatch;
