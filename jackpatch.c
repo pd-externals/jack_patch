@@ -26,7 +26,7 @@
 #include <jack/jack.h>
 
 #define CLASSNAME "jackpatch"
-#define LIBVERSION "0.2"
+#define LIBVERSION "0.3"
 
 static t_class *jackpatch_class;
 
